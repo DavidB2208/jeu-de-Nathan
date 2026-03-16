@@ -1,16 +1,10 @@
-<!doctype html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Nathan et les Quatre Maîtres</title>
-  <link rel="stylesheet" href="styles.css" />
-</head>
-<body>
-  <div id="app"></div>
-  <audio id="bgm" loop preload="auto">
-    <source src="assets/music.wav" type="audio/wav" />
-  </audio>
-  <script src="app.js"></script>
-</body>
-</html>
+Ouvre index.html dans ton navigateur.
+
+Cette version est une reconstruction standalone :
+- aucun import module
+- aucun bundler
+- aucun framework nécessaire
+- bouton “Commencer la partie” branché directement
+- musique wav intégrée
+
+Si un ancien zip est encore ouvert dans ton navigateur, ferme-le avant de tester cette version.
