@@ -240,7 +240,9 @@
   }
 
   function next() {
-    if (state.index >= state.currentQuestionList.length - 1) {
+    if (state.forcedEnding) {
+      state.phase = 'ending';
+    } else if (state.index >= state.currentQuestionList.length - 1) {
       state.phase = 'ending';
     } else {
       state.index += 1;
@@ -346,6 +348,15 @@
       </div>`;
   }
 
+
+  function maskPublicReaction(text) {
+    return text
+      .replace(/[✅❌⭐️]/g, '')
+      .replace(/Réponse[^.]*\./gi, '')
+      .replace(/Issue létale/gi, 'Un silence froid tombe dans la salle.')
+      .trim() || 'La salle reste difficile à lire.';
+  }
+
   function buildReaction() {
     const route = resolveRoute(state.styles, state.stats);
     return `
@@ -362,7 +373,7 @@
             </div>
             <div class="card">
               <div class="card-title">Réaction dans la salle</div>
-              <p>${state.lastChoice.reaction}</p>
+              <p>${maskPublicReaction(state.lastChoice.reaction)}</p>
             </div>
           </div>
           <div class="route-panel">
@@ -385,6 +396,7 @@
           <div class="smallcaps">Fin de partie</div>
           <h2 style="margin:10px 0 0;font-size:38px;">${ending.title}</h2>
           <div class="end-box">${ending.text.split('\n').map(line => `<p>${line}</p>`).join('')}</div>
+          ${ending.tone === 'secret' ? `<div class="end-box"><img src="assets/nathan.png" alt="Nathan sur un trône planétaire" style="width:100%;max-height:420px;object-fit:cover;border-radius:14px;"></div>` : ''}
           <div class="end-box">
             <div class="card-title">Route cachée révélée</div>
             <div class="route-title">${route.title}</div>
