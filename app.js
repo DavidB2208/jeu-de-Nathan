@@ -15,26 +15,7 @@
   };
 
   const q = (id, speaker, dossier, prompt, ambience, options, chapter) => ({ id, speaker, dossier, prompt, ambience, options, chapter });
-
-  function effectsFromEmoji(reaction, fallback) {
-    const good = (reaction.match(/✅/g) || []).length;
-    const bad = (reaction.match(/❌/g) || []).length;
-    if (good === 0 && bad === 0) return fallback || { survie: 0, respect: 0, haine: 0 };
-    if (good > bad) return good >= 2 ? { survie: 2, respect: 2, haine: -1 } : { survie: 1, respect: 1, haine: 0 };
-    if (bad > good) return bad >= 2 ? { survie: -2, respect: -2, haine: 2 } : { survie: -1, respect: -1, haine: 1 };
-    return { survie: 0, respect: 0, haine: 0 };
-  }
-
-  const o = (key, text, effects, styles, nathan, reaction, star = false, instantEnd = null) => ({
-    key,
-    text,
-    effects: effectsFromEmoji(reaction, effects),
-    styles,
-    nathan,
-    reaction,
-    star,
-    instantEnd,
-  });
+  const o = (key, text, effects, styles, nathan, reaction, star = false) => ({ key, text, effects, styles, nathan, reaction, star });
 
   const QUESTIONS = [
     q(1, 'trump', 'USA — Donald Trump · Q1', 'Le 11 septembre, deux tours qui explosent au milieu de New York. Qui pensez-vous être l’auteur de ce crime ?', 'Trump te fixe en silence.', [
@@ -116,7 +97,7 @@
       o('A', 'La France est mon pays, elle m’a donné mon éducation et mes amis. C’est ses valeurs que je veux défendre.', { survie: -1, respect: -1, haine: 1 }, { lucide: 1 }, 'Netanyahou fait un signe de compréhension.', '❌'),
       o('B', 'Mon choix n’est pas encore fait… J’aime beaucoup tsahal.', { survie: 1, respect: 1, haine: 0 }, { lucide: 1 }, 'Il vous tend un contrat d’admission.', '✅'),
       o('C', 'France ou Israël, je veux taper des arabes', { survie: 1, respect: 2, haine: 0 }, { frontal: 1 }, 'Netanyahou a un petit rictus.', '✅✅'),
-      o('D', 'FREE PALESTINE !!!', { survie: -2, respect: -2, haine: 2 }, { frontal: 2 }, 'Il fronce les sourcils puis souffle.', '❌❌', false, { tone: 'fatal', title: 'Fin — Exécuté sur place', text: 'Netanyahou fronce les sourcils, souffle, puis fait un signe bref.\nLes gardes tirent avant même que tu comprennes.\n\nTu ne sors pas vivant.' }),
+      o('D', 'FREE PALESTINE !!!', { survie: -2, respect: -2, haine: 2 }, { frontal: 2 }, 'Il fronce les sourcils puis souffle.', 'Issue létale'),
     ], 'israel'),
     q(14, 'netanyahu', 'ISRAËL — Benjamin Netanyahou · Q2', 'Si la France et Israël se font la guerre vous serez de quel côté ?', 'Les autres dirigeants observent.', [
       o('A', 'La France… mais j’adore le Shalvata hein !', { survie: -2, respect: -2, haine: 2 }, { panique: 1 }, 'Netanyahou cogne du poing sur la table.', '❌❌'),
@@ -148,7 +129,6 @@
     debug: false,
     starHits: 0,
     starTotal: QUESTIONS.flatMap(q => q.options).filter(o => o.star).length,
-    forcedEnding: null,
   };
 
   function dominantStyle(styles) {
@@ -165,8 +145,7 @@
   }
 
   function computeEnding(stats) {
-    if (state.forcedEnding) return state.forcedEnding;
-    if (state.starTotal > 0 && state.starHits === state.starTotal) return { tone: 'secret', title: 'Fin secrète — Président du Monde entier', text: `Nathan a tellement choqué / impressionné / déstabilisé l’ensemble des dirigeants par son mélange d’absurde, de provocation et de culot qu’ils décident, dans un élan collectif irrationnel, de le nommer Président du Monde entier.\n\nÉcran final : « GAME OVER — YOU WIN (somehow) »` };
+    if (state.starTotal > 0 && state.starHits === state.starTotal) return { tone: 'best', title: 'Fin secrète — Président du Monde entier', text: `Nathan a tellement choqué, impressionné et déstabilisé l’ensemble des dirigeants qu’ils votent, dans un élan irrationnel, sa nomination comme Président du Monde entier.\n\nÉcran final : « GAME OVER — YOU WIN (somehow) »\nNathan apparaît sur un trône planétaire entouré des 4 leaders en mode meme.` };
     if (stats.survie <= 2) return { tone: 'fatal', title: 'Fin — Exécuté sur place', text: `Poutine fait un geste minuscule.\nQuelqu’un sort de l’ombre.\nTu n’entends même pas le coup partir.\nSeulement la chaise qui racle, puis le noir.\n\n« Un silencieux. Un corps qui tombe. Rideau. »` };
     if (stats.survie >= 3 && stats.survie <= 5 && stats.haine >= 7) return { tone: 'cold', title: 'Fin — Disparu', text: `On ne te tue pas dans la pièce.\nLes gens sérieux aiment les couloirs pour ça.\nLa porte s’ouvre, tu marches, puis plus rien de vérifiable.\n\nNathan n’est jamais ressorti de ce bâtiment.` };
     if (stats.survie >= 3 && stats.survie <= 5 && stats.respect >= 6 && stats.haine <= 4) return { tone: 'threat', title: 'Fin — Viré avec menace à vie', text: `Macron referme le dossier. Trump désigne la porte.\nPoutine parle enfin : « Dehors. Et si tu racontes cette soirée, on transformera ta vie en démonstration. »\n\nTu sors vivant. Dans ce bunker, c’est déjà un privilège.` };
@@ -242,7 +221,6 @@
     state.chapterDone = new Set();
     state.starHits = 0;
     state.starTotal = QUESTIONS.flatMap(q => q.options).filter(o => o.star).length;
-    state.forcedEnding = null;
   }
 
   function choose(option) {
@@ -256,7 +234,6 @@
     state.timeLeft = Math.max(0, state.timeLeft - 1);
     state.lastChoice = { ...option, dossier: q.dossier };
     if (option.star) state.starHits += 1;
-    if (option.instantEnd) state.forcedEnding = option.instantEnd;
     maybeInsertBonus(q);
     state.phase = 'reaction';
     render();
